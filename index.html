@@ -272,7 +272,149 @@
         min-height: 2.75rem;
       }
 
-      /* 最初だけ出るヒント */
+      .calc-display .calc-detail {
+        font-size: 1.05rem;
+        color: #ffd9a8;
+        margin-top: 4px;
+        line-height: 1.45;
+      }
+      .calc-display .calc-btns {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+        margin-top: 10px;
+      }
+      .calc-display .calc-btns .calc-btns-label {
+        width: 100%;
+        font-size: .85rem;
+        color: rgba(255, 255, 255, .65);
+      }
+      .calc-display .calc-btns button {
+        appearance: none;
+        border: 1px solid rgba(255, 255, 255, .3);
+        background: rgba(255, 255, 255, .12);
+        color: #fff;
+        font: inherit;
+        font-size: 1.05rem;
+        font-weight: 700;
+        padding: 10px 14px;
+        border-radius: 12px;
+        cursor: pointer;
+        min-height: 2.75rem;
+      }
+      .calc-display .calc-btns button:active { background: rgba(255, 154, 46, .55); }
+
+      /* メモ／声かけ設定の小パネル */
+      .mini-panel {
+        position: fixed;
+        left: 50%;
+        top: max(64px, calc(env(safe-area-inset-top) + 52px));
+        transform: translateX(-50%);
+        background: rgba(12, 14, 18, .92);
+        border: 1px solid rgba(255, 255, 255, .22);
+        border-radius: 16px;
+        padding: 14px 18px;
+        color: #fff;
+        z-index: 12;
+        width: min(430px, 92vw);
+        max-height: 62vh;
+        overflow-y: auto;
+      }
+      .mini-panel[hidden] { display: none; }
+      .mini-panel h2 { font-size: 1.05rem; margin: 0 0 8px; }
+      .mini-panel ul { margin: 0; padding-left: 1.1em; font-size: 1.05rem; line-height: 1.6; }
+      .mini-panel .mini-close {
+        margin-top: 10px;
+        appearance: none;
+        border: 1px solid rgba(255, 255, 255, .3);
+        background: rgba(255, 255, 255, .1);
+        color: #fff;
+        font: inherit;
+        padding: 8px 18px;
+        border-radius: 999px;
+        cursor: pointer;
+        min-height: 2.75rem;
+      }
+      .mini-panel .remind-form { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+      .mini-panel input[type="time"], .mini-panel input[type="text"] {
+        font: inherit;
+        font-size: 1rem;
+        padding: 8px 10px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, .3);
+        background: rgba(255, 255, 255, .1);
+        color: #fff;
+        min-height: 2.75rem;
+      }
+      .mini-panel input[type="text"] { flex: 1; min-width: 160px; }
+      .mini-panel .remind-add {
+        appearance: none;
+        border: 1px solid #ff9a2e;
+        background: #ff9a2e;
+        color: #1a1206;
+        font: inherit;
+        font-weight: 700;
+        padding: 8px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        min-height: 2.75rem;
+      }
+      .mini-panel .remind-item { display: flex; justify-content: space-between; gap: 10px; align-items: center; padding: 4px 0; font-size: 1.05rem; }
+      .mini-panel .remind-del {
+        appearance: none;
+        border: 1px solid rgba(255, 255, 255, .3);
+        background: transparent;
+        color: #fff;
+        font: inherit;
+        font-size: .9rem;
+        padding: 4px 12px;
+        border-radius: 999px;
+        cursor: pointer;
+      }
+      /* 電光掲示板（右から左へ流れる文字） */
+      .ticker {
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        overflow: hidden;
+        white-space: nowrap;
+        z-index: 8;
+        pointer-events: none;
+        background: rgba(0, 0, 0, .55);
+        padding: 10px 0;
+      }
+      .ticker[hidden] { display: none; }
+      .ticker-inner {
+        display: inline-block;
+        font-size: 4.2rem;
+        font-weight: 800;
+        letter-spacing: .06em;
+        color: #ffb35c;
+        text-shadow: 0 0 14px rgba(255, 154, 46, .65);
+        padding-left: 100vw;
+        animation: ticker-scroll 12s linear infinite;
+      }
+      @keyframes ticker-scroll {
+        from { transform: translateX(0); }
+        to { transform: translateX(-100%); }
+      }
+      .mini-panel .ticker-presets { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+      .mini-panel .ticker-presets button {
+        appearance: none;
+        border: 1px solid rgba(255, 255, 255, .3);
+        background: rgba(255, 255, 255, .1);
+        color: #fff;
+        font: inherit;
+        font-size: .95rem;
+        padding: 8px 14px;
+        border-radius: 999px;
+        cursor: pointer;
+        min-height: 2.75rem;
+      }
+
       .hint {
         position: fixed;
         left: 50%;
@@ -323,7 +465,45 @@
       <div class="calc-total">合計 <span id="calcTotal">0</span>円</div>
       <div class="calc-row"><span>お預かり</span><span><span id="calcReceived">0</span>円</span></div>
       <div class="calc-change">お釣り <span id="calcChange">0</span>円</div>
+      <div class="calc-detail" id="calcDetail"></div>
+      <div class="calc-btns" id="calcItemBtns"><span class="calc-btns-label">商品（タップで足す）</span></div>
+      <div class="calc-btns" id="calcRecvBtns"><span class="calc-btns-label">お預かり（タップでセット）</span></div>
       <button type="button" class="calc-reset" id="btnCalcReset">次のお客さん（クリア）</button>
+    </div>
+
+    <div class="mini-panel" id="memoPanel" hidden>
+      <h2>メモ</h2>
+      <ul id="memoList"></ul>
+      <button type="button" class="mini-close" id="btnMemoClose">閉じる</button>
+    </div>
+
+    <div class="mini-panel" id="remindPanel" hidden>
+      <h2>声かけ設定（時刻になると声で知らせます）</h2>
+      <div class="remind-form">
+        <input type="time" id="remindTime" value="08:00">
+        <input type="text" id="remindText" placeholder="例：お薬の時間ですよ" maxlength="60">
+        <button type="button" class="remind-add" id="btnRemindAdd">追加</button>
+      </div>
+      <div id="remindList"></div>
+      <button type="button" class="mini-close" id="btnRemindClose">閉じる</button>
+    </div>
+
+    <div class="ticker" id="ticker" hidden><span class="ticker-inner" id="tickerInner">いらっしゃいませ！</span></div>
+
+    <div class="mini-panel" id="tickerPanel" hidden>
+      <h2>電光掲示板（流す文字）</h2>
+      <div class="remind-form">
+        <input type="text" id="tickerText" placeholder="例：いらっしゃいませ！手作り品あります" maxlength="60">
+        <button type="button" class="remind-add" id="btnTickerSet">流す</button>
+      </div>
+      <div class="ticker-presets">
+        <button type="button" data-ticker="いらっしゃいませ！">いらっしゃいませ</button>
+        <button type="button" data-ticker="手作り品あります。見ていってください！">手作り品あります</button>
+        <button type="button" data-ticker="本日セール中！">セール中</button>
+        <button type="button" data-ticker="ありがとうございました！">ありがとう</button>
+      </div>
+      <button type="button" class="mini-close" id="btnTickerStop">掲示板を止める</button>
+      <button type="button" class="mini-close" id="btnTickerClose">閉じる</button>
     </div>
 
     <nav class="controls" id="controls" aria-label="目の設定">
@@ -333,6 +513,10 @@
       <button type="button" id="btnChat" aria-pressed="true">おしゃべり：オン</button>
       <button type="button" id="btnListen" aria-pressed="false">聞き取り：オフ</button>
       <button type="button" id="btnCalc" aria-pressed="false">計算モード：オフ</button>
+      <button type="button" id="btnCall" aria-pressed="false">呼び込み：オフ</button>
+      <button type="button" id="btnMemo">メモ</button>
+      <button type="button" id="btnRemind">声かけ設定</button>
+      <button type="button" id="btnTicker">掲示板</button>
       <button type="button" id="btnSound" aria-pressed="false">音：オフ</button>
       <button type="button" id="btnWake" aria-pressed="false">画面つけっぱなし</button>
       <button type="button" id="btnFull">全画面</button>
@@ -828,6 +1012,7 @@
           if (speaking || Date.now() - speakEndAt < 900) return;  // 自分の声には反応しない
           resetIdle();
           if (sleeping || face.classList.contains('drowsy')) wakeUp();
+          if (handleMemo(text)) return;
           if (calcOn && handleCalc(text)) return;
           if (text.indexOf('何時') !== -1) {
             var d = new Date();
@@ -883,7 +1068,11 @@
           var ch = calcReceived - calcTotal;
           elCalcChange.textContent = fmtYen(ch > 0 ? ch : 0);
         }
-        function resetCalc() { calcTotal = 0; calcReceived = 0; renderCalc(); }
+        function resetCalc() {
+          calcTotal = 0; calcReceived = 0; renderCalc();
+          var d = document.getElementById('calcDetail');
+          if (d) d.textContent = '';
+        }
 
         /* 漢数字（一〜九・十・百・千・万）を数に直す */
         var KNUM = { '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9 };
@@ -940,17 +1129,7 @@
             if (received && list[j] === received) { calcReceived = list[j].v; }
             else { calcTotal += list[j].v; }
           }
-          renderCalc();
-          tempExpr('happy', 1500);
-          if (calcReceived > 0) {
-            if (calcReceived >= calcTotal) {
-              speak('合計' + calcTotal + '円、お預かり' + calcReceived + '円、お釣りは' + (calcReceived - calcTotal) + '円です');
-            } else {
-              speak('合計' + calcTotal + '円です。あと' + (calcTotal - calcReceived) + '円足りません');
-            }
-          } else {
-            speak('合計' + calcTotal + '円です');
-          }
+          announceCalc(true);
           return true;
         }
 
@@ -966,6 +1145,231 @@
           showControls();
         });
         btnCalcReset.addEventListener('click', function () { resetCalc(); });
+
+        /* ---------- 追加機能：内訳／ボタン計算／呼び込み／メモ／声かけ／掲示板 ---------- */
+        var elCalcDetail = document.getElementById('calcDetail');
+
+        /* お釣りの内訳（金種）を文章にする */
+        function changeBreakdownText(n) {
+          if (n <= 0) return '';
+          var denoms = [[10000, '一万円札'], [5000, '五千円札'], [1000, '千円札'], [500, '五百円玉'], [100, '百円玉'], [50, '五十円玉'], [10, '十円玉'], [5, '五円玉'], [1, '一円玉']];
+          var parts = [];
+          for (var i = 0; i < denoms.length; i++) {
+            var c = Math.floor(n / denoms[i][0]);
+            if (c > 0) { parts.push(denoms[i][1] + c + '枚'); n -= c * denoms[i][0]; }
+          }
+          return parts.join('、');
+        }
+
+        /* 計算結果の表示＋読み上げ（声・ボタンの共通処理） */
+        function announceCalc(sayIt) {
+          renderCalc();
+          var ch = calcReceived - calcTotal;
+          elCalcDetail.textContent = (calcReceived > 0 && ch > 0) ? ('内訳：' + changeBreakdownText(ch)) : '';
+          if (!sayIt) return;
+          tempExpr('happy', 1500);
+          if (calcReceived > 0) {
+            if (ch >= 0) {
+              var bd = changeBreakdownText(ch);
+              speak('合計' + calcTotal + '円、お預かり' + calcReceived + '円、お釣りは' + ch + '円です' + (bd ? '。' + bd + 'です' : ''));
+            } else {
+              speak('合計' + calcTotal + '円です。あと' + (-ch) + '円足りません');
+            }
+          } else if (calcTotal > 0) {
+            speak('合計' + calcTotal + '円です');
+          }
+        }
+
+        /* ボタン計算（騒がしい場所用：声の代わりにタップで足す） */
+        (function buildCalcButtons() {
+          var itemBox = document.getElementById('calcItemBtns');
+          var recvBox = document.getElementById('calcRecvBtns');
+          [100, 300, 500, 800, 1000, 1200, 1500, 2000].forEach(function (v) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.textContent = fmtYen(v) + '円';
+            b.addEventListener('click', function () { calcTotal += v; announceCalc(true); });
+            itemBox.appendChild(b);
+          });
+          [500, 1000, 2000, 5000, 10000].forEach(function (v) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.textContent = fmtYen(v) + '円';
+            b.addEventListener('click', function () { calcReceived = v; announceCalc(true); });
+            recvBox.appendChild(b);
+          });
+        })();
+
+        /* 呼び込みモード（時々「いらっしゃいませ」と声を出す） */
+        var callOn = false, callTimer = null, callIdx = 0;
+        var callPhrases = ['いらっしゃいませ', 'よかったら、見ていってください', '手作りの品物です', 'いらっしゃいませ'];
+        var btnCall = document.getElementById('btnCall');
+        function callStep() {
+          if (!callOn) return;
+          if (!speaking) { speak(callPhrases[callIdx % callPhrases.length]); callIdx++; tempExpr('happy', 2000); }
+        }
+        btnCall.addEventListener('click', function () {
+          callOn = !callOn;
+          btnCall.setAttribute('aria-pressed', callOn ? 'true' : 'false');
+          btnCall.textContent = callOn ? '呼び込み：オン' : '呼び込み：オフ';
+          if (callOn) { callStep(); callTimer = setInterval(callStep, 45000); }
+          else if (callTimer) { clearInterval(callTimer); callTimer = null; }
+          showControls();
+        });
+
+        /* 小パネルの開閉（メモ／声かけ／掲示板は同時に出さない） */
+        var memoPanel = document.getElementById('memoPanel');
+        var remindPanel = document.getElementById('remindPanel');
+        var tickerPanel = document.getElementById('tickerPanel');
+        function togglePanel(panel) {
+          var willShow = panel.hidden;
+          memoPanel.hidden = true; remindPanel.hidden = true; tickerPanel.hidden = true;
+          panel.hidden = !willShow;
+        }
+
+        /* 言うたメモ（声で残す・端末内に保存） */
+        function loadMemos() {
+          try { return JSON.parse(localStorage.getItem('robotMemos') || '[]'); } catch (e) { return []; }
+        }
+        function saveMemos(list) {
+          try { localStorage.setItem('robotMemos', JSON.stringify(list.slice(0, 20))); } catch (e) { /* 保存できない環境では何もしない */ }
+        }
+        function renderMemos() {
+          var list = loadMemos();
+          var ul = document.getElementById('memoList');
+          ul.innerHTML = '';
+          if (!list.length) {
+            var li = document.createElement('li');
+            li.textContent = '（まだメモはありません。「メモ、○○」と話しかけてください）';
+            ul.appendChild(li);
+            return;
+          }
+          list.forEach(function (m) {
+            var li = document.createElement('li');
+            li.textContent = m;
+            ul.appendChild(li);
+          });
+        }
+        function handleMemo(text) {
+          if (text.indexOf('メモ') === -1) return false;
+          if (text.indexOf('消して') !== -1 || text.indexOf('全部消') !== -1) {
+            saveMemos([]);
+            renderMemos();
+            speak('メモを全部消しました');
+            return true;
+          }
+          if (text.indexOf('見せて') !== -1 || text.indexOf('読んで') !== -1 || text.indexOf('教えて') !== -1) {
+            renderMemos();
+            memoPanel.hidden = false; remindPanel.hidden = true; tickerPanel.hidden = true;
+            var list = loadMemos();
+            speak(list.length ? ('メモが' + list.length + '件あります') : 'メモはまだありません');
+            return true;
+          }
+          var body = text.substring(text.indexOf('メモ') + 2).replace(/^[、：:して\s]+/, '').replace(/して$/, '');
+          if (body) {
+            var list = loadMemos();
+            list.unshift(body);
+            saveMemos(list);
+            renderMemos();
+            speak('メモしました');
+            tempExpr('happy', 1200);
+            return true;
+          }
+          return false;
+        }
+        document.getElementById('btnMemo').addEventListener('click', function () { renderMemos(); togglePanel(memoPanel); showControls(); });
+        document.getElementById('btnMemoClose').addEventListener('click', function () { memoPanel.hidden = true; });
+
+        /* 声かけ設定（決まった時刻に声で知らせる） */
+        function loadReminders() {
+          try { return JSON.parse(localStorage.getItem('robotReminders') || '[]'); } catch (e) { return []; }
+        }
+        function saveReminders(list) {
+          try { localStorage.setItem('robotReminders', JSON.stringify(list)); } catch (e) { /* 保存できない環境では何もしない */ }
+        }
+        function renderReminders() {
+          var box = document.getElementById('remindList');
+          box.innerHTML = '';
+          var list = loadReminders();
+          if (!list.length) {
+            var p = document.createElement('p');
+            p.textContent = '（まだ設定がありません）';
+            box.appendChild(p);
+            return;
+          }
+          list.forEach(function (r, idx) {
+            var row = document.createElement('div');
+            row.className = 'remind-item';
+            var label = document.createElement('span');
+            label.textContent = r.time + '　' + r.text;
+            var del = document.createElement('button');
+            del.type = 'button';
+            del.className = 'remind-del';
+            del.textContent = '消す';
+            del.addEventListener('click', function () {
+              var l = loadReminders();
+              l.splice(idx, 1);
+              saveReminders(l);
+              renderReminders();
+            });
+            row.appendChild(label);
+            row.appendChild(del);
+            box.appendChild(row);
+          });
+        }
+        document.getElementById('btnRemindAdd').addEventListener('click', function () {
+          var t = document.getElementById('remindTime').value;
+          var x = document.getElementById('remindText').value.replace(/^\s+|\s+$/g, '');
+          if (!t || !x) { setVoiceStatus('声かけ設定：時刻と言葉を入れてください'); return; }
+          var list = loadReminders();
+          list.push({ time: t, text: x });
+          list.sort(function (a, b) { return a.time < b.time ? -1 : 1; });
+          saveReminders(list);
+          renderReminders();
+          document.getElementById('remindText').value = '';
+          speak('声かけを設定しました');
+        });
+        document.getElementById('btnRemind').addEventListener('click', function () { renderReminders(); togglePanel(remindPanel); showControls(); });
+        document.getElementById('btnRemindClose').addEventListener('click', function () { remindPanel.hidden = true; });
+        var remindFired = {};
+        setInterval(function () {
+          var list = loadReminders();
+          if (!list.length) return;
+          var d = new Date();
+          var hh = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+          var dayKey = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+          list.forEach(function (r, idx) {
+            var key = dayKey + ' ' + r.time + ' #' + idx;
+            if (r.time === hh && !remindFired[key]) {
+              remindFired[key] = true;
+              speak(r.text);
+              tempExpr('happy', 3000);
+              setVoiceStatus('声かけ：' + r.text);
+            }
+          });
+        }, 20000);
+
+        /* 電光掲示板（右から左へ文字を流す） */
+        var ticker = document.getElementById('ticker');
+        var tickerInner = document.getElementById('tickerInner');
+        function setTicker(text) {
+          tickerInner.textContent = text;
+          ticker.hidden = false;
+          tickerInner.style.animation = 'none';
+          void tickerInner.offsetWidth;
+          tickerInner.style.animation = '';
+        }
+        document.getElementById('btnTickerSet').addEventListener('click', function () {
+          var x = document.getElementById('tickerText').value.replace(/^\s+|\s+$/g, '');
+          if (x) setTicker(x);
+        });
+        var presetBtns = tickerPanel.querySelectorAll('[data-ticker]');
+        for (var pi = 0; pi < presetBtns.length; pi++) {
+          presetBtns[pi].addEventListener('click', function () { setTicker(this.getAttribute('data-ticker')); });
+        }
+        document.getElementById('btnTickerStop').addEventListener('click', function () { ticker.hidden = true; });
+        document.getElementById('btnTicker').addEventListener('click', function () { togglePanel(tickerPanel); showControls(); });
+        document.getElementById('btnTickerClose').addEventListener('click', function () { tickerPanel.hidden = true; });
 
         /* ---------- 操作ボタン ---------- */
         var btnExpr = document.getElementById('btnExpr');
