@@ -415,6 +415,26 @@
         min-height: 2.75rem;
       }
 
+      /* 翻訳モードの英語表示 */
+      .trans-display {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(12, 14, 18, .9);
+        border: 1px solid rgba(255, 255, 255, .25);
+        border-radius: 18px;
+        padding: 22px 30px;
+        color: #fff;
+        font-size: 2.4rem;
+        font-weight: 800;
+        line-height: 1.35;
+        text-align: center;
+        z-index: 11;
+        max-width: 92vw;
+      }
+      .trans-display[hidden] { display: none; }
+
       .hint {
         position: fixed;
         left: 50%;
@@ -490,6 +510,8 @@
 
     <div class="ticker" id="ticker" hidden><span class="ticker-inner" id="tickerInner">いらっしゃいませ！</span></div>
 
+    <div class="trans-display" id="transDisplay" hidden></div>
+
     <div class="mini-panel" id="tickerPanel" hidden>
       <h2>電光掲示板（流す文字）</h2>
       <div class="remind-form">
@@ -517,6 +539,7 @@
       <button type="button" id="btnMemo">メモ</button>
       <button type="button" id="btnRemind">声かけ設定</button>
       <button type="button" id="btnTicker">掲示板</button>
+      <button type="button" id="btnTrans" aria-pressed="false">翻訳：オフ</button>
       <button type="button" id="btnSound" aria-pressed="false">音：オフ</button>
       <button type="button" id="btnWake" aria-pressed="false">画面つけっぱなし</button>
       <button type="button" id="btnFull">全画面</button>
@@ -1013,6 +1036,7 @@
           resetIdle();
           if (sleeping || face.classList.contains('drowsy')) wakeUp();
           if (handleMemo(text)) return;
+          if (transOn && handleTranslate(text)) return;
           if (calcOn && handleCalc(text)) return;
           if (text.indexOf('何時') !== -1) {
             var d = new Date();
@@ -1370,6 +1394,87 @@
         document.getElementById('btnTickerStop').addEventListener('click', function () { ticker.hidden = true; });
         document.getElementById('btnTicker').addEventListener('click', function () { togglePanel(tickerPanel); showControls(); });
         document.getElementById('btnTickerClose').addEventListener('click', function () { tickerPanel.hidden = true; });
+
+        /* ---------- 翻訳モード（フレーズ方式・日→英） ----------
+           決まった日本語フレーズと金額を、英語で大きく表示＋読み上げる。
+           ネット不要の内蔵辞書方式なので、売り場でも確実に動く。 */
+        var transOn = false;
+        var elTransDisplay = document.getElementById('transDisplay');
+        var btnTrans = document.getElementById('btnTrans');
+        var PHRASES = [
+          ['いらっしゃい', 'Welcome!'],
+          ['ありがとう', 'Thank you very much!'],
+          ['おはよう', 'Good morning!'],
+          ['こんにちは', 'Hello!'],
+          ['こんにちわ', 'Hello!'],
+          ['こんばんは', 'Good evening.'],
+          ['こんばんわ', 'Good evening.'],
+          ['手作り', 'These are all handmade.'],
+          ['触って', 'Please feel free to touch.'],
+          ['袋', 'Would you like a bag?'],
+          ['お待ち', 'Just a moment, please.'],
+          ['待って', 'Just a moment, please.'],
+          ['日本製', 'Made in Japan.'],
+          ['プレゼント', 'It makes a great gift.'],
+          ['贈り物', 'It makes a great gift.'],
+          ['また来て', 'Please come again!'],
+          ['さようなら', 'Goodbye!'],
+          ['バイバイ', 'See you!'],
+          ['すみません', 'Excuse me.'],
+          ['大丈夫', 'No problem.']
+        ];
+        function speakEn(text) {
+          if (!('speechSynthesis' in window)) return;
+          try {
+            var u = new SpeechSynthesisUtterance(text);
+            u.lang = 'en-US';
+            u.rate = 0.95;
+            var voices = speechSynthesis.getVoices();
+            for (var i = 0; i < voices.length; i++) {
+              if (voices[i].lang && voices[i].lang.indexOf('en') === 0) { u.voice = voices[i]; break; }
+            }
+            u.onstart = function () { speaking = true; };
+            u.onend = function () { speaking = false; speakEndAt = Date.now(); };
+            u.onerror = function () { speaking = false; speakEndAt = Date.now(); };
+            speechSynthesis.cancel();
+            speechSynthesis.speak(u);
+          } catch (e) { /* 喋れない環境では表示だけ */ }
+        }
+        function showTrans(en) {
+          elTransDisplay.textContent = en;
+          elTransDisplay.hidden = false;
+        }
+        elTransDisplay.addEventListener('click', function () { elTransDisplay.hidden = true; });
+        function handleTranslate(text) {
+          for (var i = 0; i < PHRASES.length; i++) {
+            if (text.indexOf(PHRASES[i][0]) !== -1) {
+              showTrans(PHRASES[i][1]);
+              speakEn(PHRASES[i][1]);
+              tempExpr('happy', 1800);
+              return true;
+            }
+          }
+          var t = text.replace(/[０-９]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); }).replace(/[,、，]/g, '');
+          var list = extractYenList(t);
+          if (list.length) {
+            var v = list[0].v;
+            var en = (t.indexOf('釣') !== -1) ? ('Your change is ' + v + ' yen.') : ("That's " + v + ' yen.');
+            showTrans((t.indexOf('釣') !== -1) ? ('Your change is ' + fmtYen(v) + ' yen.') : ("That's " + fmtYen(v) + ' yen.'));
+            speakEn(en);
+            tempExpr('happy', 1800);
+            return true;
+          }
+          setVoiceStatus('翻訳：そのフレーズは辞書にありません（聞こえた：「' + text + '」）');
+          return true;
+        }
+        btnTrans.addEventListener('click', function () {
+          transOn = !transOn;
+          btnTrans.setAttribute('aria-pressed', transOn ? 'true' : 'false');
+          btnTrans.textContent = transOn ? '翻訳：オン' : '翻訳：オフ';
+          if (!transOn) elTransDisplay.hidden = true;
+          if (transOn) setVoiceStatus('翻訳モード：日本語の決まり文と金額を英語で喋ります（聞き取りと一緒に使ってください）');
+          showControls();
+        });
 
         /* ---------- 操作ボタン ---------- */
         var btnExpr = document.getElementById('btnExpr');
