@@ -223,6 +223,55 @@
         font-weight: 700;
       }
 
+      /* 計算モードの金額表示（お客さんにも見える大きさ） */
+      .calc-display {
+        position: fixed;
+        left: 50%;
+        bottom: max(96px, calc(env(safe-area-inset-bottom) + 84px));
+        transform: translateX(-50%);
+        background: rgba(12, 14, 18, .88);
+        border: 1px solid rgba(255, 255, 255, .22);
+        border-radius: 18px;
+        padding: 14px 22px 16px;
+        color: #fff;
+        text-align: center;
+        z-index: 11;
+        min-width: 280px;
+        max-width: 92vw;
+      }
+      .calc-display[hidden] { display: none; }
+      .calc-display .calc-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+        font-size: 1.25rem;
+        line-height: 1.5;
+      }
+      .calc-display .calc-total {
+        font-size: 2.3rem;
+        font-weight: 800;
+        line-height: 1.3;
+      }
+      .calc-display .calc-change {
+        font-size: 1.9rem;
+        font-weight: 800;
+        color: #ffb35c;
+        line-height: 1.35;
+      }
+      .calc-display .calc-reset {
+        margin-top: 10px;
+        appearance: none;
+        border: 1px solid rgba(255, 255, 255, .3);
+        background: rgba(255, 255, 255, .1);
+        color: #fff;
+        font: inherit;
+        font-size: 1rem;
+        padding: 8px 20px;
+        border-radius: 999px;
+        cursor: pointer;
+        min-height: 2.75rem;
+      }
+
       /* 最初だけ出るヒント */
       .hint {
         position: fixed;
@@ -270,12 +319,20 @@
 
     <p class="hint" id="hint">タップで反応 ・ 横置きは「画面を90°回転」</p>
 
+    <div class="calc-display" id="calcDisplay" hidden>
+      <div class="calc-total">合計 <span id="calcTotal">0</span>円</div>
+      <div class="calc-row"><span>お預かり</span><span><span id="calcReceived">0</span>円</span></div>
+      <div class="calc-change">お釣り <span id="calcChange">0</span>円</div>
+      <button type="button" class="calc-reset" id="btnCalcReset">次のお客さん（クリア）</button>
+    </div>
+
     <nav class="controls" id="controls" aria-label="目の設定">
       <button type="button" id="btnExpr">表情：ふつう</button>
       <button type="button" id="btnColor">色：しろ</button>
       <button type="button" id="btnVoice" aria-pressed="false">声に反応：オフ</button>
       <button type="button" id="btnChat" aria-pressed="true">おしゃべり：オン</button>
       <button type="button" id="btnListen" aria-pressed="false">聞き取り：オフ</button>
+      <button type="button" id="btnCalc" aria-pressed="false">計算モード：オフ</button>
       <button type="button" id="btnSound" aria-pressed="false">音：オフ</button>
       <button type="button" id="btnWake" aria-pressed="false">画面つけっぱなし</button>
       <button type="button" id="btnFull">全画面</button>
@@ -771,6 +828,7 @@
           if (speaking || Date.now() - speakEndAt < 900) return;  // 自分の声には反応しない
           resetIdle();
           if (sleeping || face.classList.contains('drowsy')) wakeUp();
+          if (calcOn && handleCalc(text)) return;
           if (text.indexOf('何時') !== -1) {
             var d = new Date();
             speak('いま、' + d.getHours() + '時' + d.getMinutes() + '分です');
@@ -804,6 +862,110 @@
             tempExpr('happy', 900);
           }
         }
+
+        /* ---------- 計算モード（イベント売り場の相方） ----------
+           「聞き取り」で聞こえた金額を拾って、合計・お預かり・お釣りを
+           大きく表示し、声でも伝える。計算モードがオンのときだけ動く。
+           商品の金額を言うたびに合計へ足していく方式。 */
+        var calcOn = false;
+        var calcTotal = 0, calcReceived = 0;
+        var elCalcDisplay = document.getElementById('calcDisplay');
+        var elCalcTotal = document.getElementById('calcTotal');
+        var elCalcReceived = document.getElementById('calcReceived');
+        var elCalcChange = document.getElementById('calcChange');
+        var btnCalc = document.getElementById('btnCalc');
+        var btnCalcReset = document.getElementById('btnCalcReset');
+
+        function fmtYen(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+        function renderCalc() {
+          elCalcTotal.textContent = fmtYen(calcTotal);
+          elCalcReceived.textContent = fmtYen(calcReceived);
+          var ch = calcReceived - calcTotal;
+          elCalcChange.textContent = fmtYen(ch > 0 ? ch : 0);
+        }
+        function resetCalc() { calcTotal = 0; calcReceived = 0; renderCalc(); }
+
+        /* 漢数字（一〜九・十・百・千・万）を数に直す */
+        var KNUM = { '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9 };
+        function kanjiToNumber(s) {
+          if (!s) return null;
+          var total = 0, section = 0, num = 0, seen = false;
+          for (var i = 0; i < s.length; i++) {
+            var c = s[i];
+            if (KNUM[c] !== undefined) { num = KNUM[c]; seen = true; }
+            else if (c === '十') { section += (num || 1) * 10; num = 0; seen = true; }
+            else if (c === '百') { section += (num || 1) * 100; num = 0; seen = true; }
+            else if (c === '千') { section += (num || 1) * 1000; num = 0; seen = true; }
+            else if (c === '万') { total += ((section + num) || 1) * 10000; section = 0; num = 0; seen = true; }
+            else { return null; }
+          }
+          if (!seen) return null;
+          return total + section + num;
+        }
+
+        /* テキスト中の「○○円」を位置つきで全部拾う（数字・漢数字の両対応） */
+        function extractYenList(t) {
+          var list = [], m;
+          var reD = /(\d+)\s*円/g;
+          while ((m = reD.exec(t)) !== null) { list.push({ v: parseInt(m[1], 10), i: m.index }); }
+          var reK = /([一二三四五六七八九十百千万]+)\s*円/g;
+          while ((m = reK.exec(t)) !== null) {
+            var v = kanjiToNumber(m[1]);
+            if (v !== null) list.push({ v: v, i: m.index });
+          }
+          list.sort(function (a, b) { return a.i - b.i; });
+          return list;
+        }
+
+        function handleCalc(text) {
+          var t = text.replace(/[０-９]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); }).replace(/[,、，]/g, '');
+          if (t.indexOf('クリア') !== -1 || t.indexOf('リセット') !== -1 || t.indexOf('最初から') !== -1 || t.indexOf('次のお客') !== -1) {
+            resetCalc();
+            speak('クリアしました');
+            tempExpr('happy', 1200);
+            return true;
+          }
+          var list = extractYenList(t);
+          if (!list.length) return false;
+          var azukariIdx = t.indexOf('預か');
+          var received = null;
+          if (azukariIdx !== -1) {
+            var bestDist = 1e9;
+            for (var i = 0; i < list.length; i++) {
+              var d = Math.abs(list[i].i - azukariIdx);
+              if (d < bestDist) { bestDist = d; received = list[i]; }
+            }
+          }
+          for (var j = 0; j < list.length; j++) {
+            if (received && list[j] === received) { calcReceived = list[j].v; }
+            else { calcTotal += list[j].v; }
+          }
+          renderCalc();
+          tempExpr('happy', 1500);
+          if (calcReceived > 0) {
+            if (calcReceived >= calcTotal) {
+              speak('合計' + calcTotal + '円、お預かり' + calcReceived + '円、お釣りは' + (calcReceived - calcTotal) + '円です');
+            } else {
+              speak('合計' + calcTotal + '円です。あと' + (calcTotal - calcReceived) + '円足りません');
+            }
+          } else {
+            speak('合計' + calcTotal + '円です');
+          }
+          return true;
+        }
+
+        btnCalc.addEventListener('click', function () {
+          calcOn = !calcOn;
+          btnCalc.setAttribute('aria-pressed', calcOn ? 'true' : 'false');
+          btnCalc.textContent = calcOn ? '計算モード：オン' : '計算モード：オフ';
+          elCalcDisplay.hidden = !calcOn;
+          if (calcOn) {
+            resetCalc();
+            setVoiceStatus('計算モード：金額を言うと合計します。「2000円お預かり」でお釣りも出ます。「クリア」でリセット');
+          }
+          showControls();
+        });
+        btnCalcReset.addEventListener('click', function () { resetCalc(); });
 
         /* ---------- 操作ボタン ---------- */
         var btnExpr = document.getElementById('btnExpr');
