@@ -573,7 +573,7 @@
     <script>
       (function () {
         /* ---------- 版と自動更新（新しい版が出たら自動で読み直す） ---------- */
-        var PAGE_VERSION = '20261114-5';
+        var PAGE_VERSION = '20261114-6';
         try {
           fetch(location.pathname + '?vcb=' + Date.now(), { cache: 'no-store' })
             .then(function (res) { return res.text(); })
@@ -1405,9 +1405,10 @@
             var key = dayKey + ' ' + r.time + ' #' + idx;
             if (r.time === hh && !remindFired[key]) {
               remindFired[key] = true;
-              tone(880, 0, 0.18, 0.06); tone(659, 0.22, 0.28, 0.06);
-              tone(880, 0.65, 0.18, 0.06); tone(659, 0.87, 0.28, 0.06);
-              setTimeout(function () { speak(r.text); }, 1300);
+              tone(659, 0, 0.22, 0.3); tone(523, 0.26, 0.34, 0.3);
+              tone(659, 0.75, 0.22, 0.3); tone(523, 1.01, 0.34, 0.3);
+              tone(659, 1.5, 0.22, 0.3); tone(523, 1.76, 0.34, 0.3);
+              setTimeout(function () { speak(r.text); }, 2250);
               tempExpr('happy', 3000);
               setVoiceStatus('声かけ：' + r.text);
             }
