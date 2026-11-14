@@ -573,7 +573,7 @@
     <script>
       (function () {
         /* ---------- 版と自動更新（新しい版が出たら自動で読み直す） ---------- */
-        var PAGE_VERSION = '20261114-4';
+        var PAGE_VERSION = '20261114-5';
         try {
           fetch(location.pathname + '?vcb=' + Date.now(), { cache: 'no-store' })
             .then(function (res) { return res.text(); })
@@ -763,6 +763,7 @@
         /* ---------- タップ反応 ---------- */
         var controlsTimer = null;
         function showControls() {
+          ensureAudio();   // 画面に触れたついでに音のロックを外す
           controls.classList.add('show');
           hint.classList.add('gone');
           if (controlsTimer) clearTimeout(controlsTimer);
