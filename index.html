@@ -572,6 +572,21 @@
 
     <script>
       (function () {
+        /* ---------- 版と自動更新（新しい版が出たら自動で読み直す） ---------- */
+        var PAGE_VERSION = '20261114-4';
+        try {
+          fetch(location.pathname + '?vcb=' + Date.now(), { cache: 'no-store' })
+            .then(function (res) { return res.text(); })
+            .then(function (text) {
+              var m = text.match(/PAGE_VERSION = '([^']+)'/);
+              if (m && m[1] !== PAGE_VERSION && sessionStorage.getItem('hopV') !== m[1]) {
+                sessionStorage.setItem('hopV', m[1]);
+                location.replace(location.pathname + '?v=' + m[1]);
+              }
+            })
+            .catch(function () { /* オフライン時は何もしない */ });
+        } catch (e) { /* 古い環境では何もしない */ }
+
         var stage = document.getElementById('stage');
         var face = document.getElementById('face');
         var rotator = document.getElementById('rotator');
@@ -1389,7 +1404,9 @@
             var key = dayKey + ' ' + r.time + ' #' + idx;
             if (r.time === hh && !remindFired[key]) {
               remindFired[key] = true;
-              speak(r.text);
+              tone(880, 0, 0.18, 0.06); tone(659, 0.22, 0.28, 0.06);
+              tone(880, 0.65, 0.18, 0.06); tone(659, 0.87, 0.28, 0.06);
+              setTimeout(function () { speak(r.text); }, 1300);
               tempExpr('happy', 3000);
               setVoiceStatus('声かけ：' + r.text);
             }
