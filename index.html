@@ -54,6 +54,7 @@
         height: 100vw;
       }
       .face {
+        position: relative;
         display: flex;
         align-items: center;
         gap: 15vmin;
@@ -101,6 +102,43 @@
       .face[data-color="orange"]{ --eye-color: #ff9a2e; --eye-glow: rgba(255, 154, 46, .42); }
       .face[data-color="green"] { --eye-color: #5df08a; --eye-glow: rgba(93, 240, 138, .38); }
       .face[data-color="pink"]  { --eye-color: #ff7eb6; --eye-glow: rgba(255, 126, 182, .40); }
+
+      /* 顔の輪郭と口（目の色に連動） */
+      .outline {
+        position: absolute;
+        left: -10vmin;
+        right: -10vmin;
+        top: -9vmin;
+        bottom: -13vmin;
+        border: 1.3vmin solid var(--eye-color, #f4f7f7);
+        border-radius: 46% 46% 48% 48% / 52% 52% 55% 55%;
+        box-shadow: 0 0 6vmin 0 var(--eye-glow, rgba(190, 240, 255, .28)), inset 0 0 6vmin 0 var(--eye-glow, rgba(190, 240, 255, .28));
+        opacity: .85;
+        pointer-events: none;
+      }
+      .mouth {
+        position: absolute;
+        left: 50%;
+        bottom: -9.5vmin;
+        width: 13vmin;
+        height: 6.5vmin;
+        transform: translateX(-50%);
+        border-bottom: 1.2vmin solid var(--eye-color, #f4f7f7);
+        border-radius: 50%;
+        pointer-events: none;
+        transition: width .3s ease, height .3s ease;
+      }
+      .face[data-expr="happy"] .mouth { width: 18vmin; height: 9.5vmin; }
+      .face[data-expr="surprised"] .mouth {
+        width: 6.5vmin;
+        height: 6.5vmin;
+        border: 1.1vmin solid var(--eye-color, #f4f7f7);
+      }
+      .face[data-expr="sleepy"] .mouth, .face.drowsy .mouth, .face.asleep .mouth {
+        width: 7vmin;
+        height: 3vmin;
+      }
+      .face.no-outline .outline, .face.no-outline .mouth { display: none; }
 
       /* 表情 */
       .face[data-expr="happy"] .eye {
@@ -487,6 +525,8 @@
     <div class="rotator" id="rotator" data-rot="0">
     <main class="stage" id="stage" aria-label="ロボットの目。タップすると反応します">
       <div class="face" id="face" data-color="white" data-expr="normal">
+        <div class="outline" aria-hidden="true"></div>
+        <div class="mouth" aria-hidden="true"></div>
         <div class="eye left">
           <span class="heart" aria-hidden="true">
             <svg viewBox="0 0 100 92"><path d="M50 84C20 62 6 44 6 27 6 12 17 3 29 3c9 0 17 5 21 12C54 8 62 3 71 3c12 0 23 9 23 24 0 17-14 35-44 57z"/></svg>
@@ -555,6 +595,7 @@
       <button type="button" id="btnColor">色：しろ</button>
       <button type="button" id="btnVoice" aria-pressed="false">声に反応：オフ</button>
       <button type="button" id="btnChat" aria-pressed="true">おしゃべり：オン</button>
+      <button type="button" id="btnOutline" aria-pressed="true">輪郭：オン</button>
       <button type="button" id="btnListen" aria-pressed="false">聞き取り：オフ</button>
       <button type="button" id="btnCalc" aria-pressed="false">計算モード：オフ</button>
       <button type="button" id="btnCall" aria-pressed="false">呼び込み：オフ</button>
@@ -573,7 +614,7 @@
     <script>
       (function () {
         /* ---------- 版と自動更新（新しい版が出たら自動で読み直す） ---------- */
-        var PAGE_VERSION = '20261114-12';
+        var PAGE_VERSION = '20261114-13';
         try {
           fetch(location.pathname + '?vcb=' + Date.now(), { cache: 'no-store' })
             .then(function (res) { return res.text(); })
@@ -1573,6 +1614,7 @@
         var btnRot = document.getElementById('btnRot');
         var btnVoice = document.getElementById('btnVoice');
         var btnChat = document.getElementById('btnChat');
+        var btnOutline = document.getElementById('btnOutline');
         var btnListen = document.getElementById('btnListen');
 
         btnExpr.addEventListener('click', function () {
@@ -1619,6 +1661,17 @@
             primeSpeech();
             speak('はい');
           }
+          showControls();
+        });
+
+        /* 顔の輪郭と口 オン/オフ */
+        var outlineOn = true;
+        btnOutline.addEventListener('click', function () {
+          outlineOn = !outlineOn;
+          face.classList.toggle('no-outline', !outlineOn);
+          btnOutline.setAttribute('aria-pressed', outlineOn ? 'true' : 'false');
+          btnOutline.textContent = outlineOn ? '輪郭：オン' : '輪郭：オフ';
+          blip(880);
           showControls();
         });
 
