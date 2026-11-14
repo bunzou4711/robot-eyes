@@ -573,7 +573,7 @@
     <script>
       (function () {
         /* ---------- 版と自動更新（新しい版が出たら自動で読み直す） ---------- */
-        var PAGE_VERSION = '20261114-7';
+        var PAGE_VERSION = '20261114-8';
         try {
           fetch(location.pathname + '?vcb=' + Date.now(), { cache: 'no-store' })
             .then(function (res) { return res.text(); })
@@ -1401,9 +1401,13 @@
           var d = new Date();
           var hh = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
           var dayKey = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+          var nowMin = d.getHours() * 60 + d.getMinutes();
           list.forEach(function (r, idx) {
             var key = dayKey + ' ' + r.time + ' #' + idx;
-            if (r.time === hh && !remindFired[key]) {
+            var parts = r.time.split(':');
+            var tMin = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+            var late = nowMin - tMin;
+            if (!remindFired[key] && late >= 0 && late <= 5) {
               remindFired[key] = true;
               tone(523, 0, 0.16, 0.3); tone(659, 0.17, 0.16, 0.3); tone(784, 0.34, 0.16, 0.3); tone(1047, 0.51, 0.2, 0.3); tone(784, 0.68, 0.16, 0.3); tone(659, 0.85, 0.22, 0.3);
               tone(523, 1.25, 0.16, 0.3); tone(659, 1.42, 0.16, 0.3); tone(784, 1.59, 0.16, 0.3); tone(1047, 1.76, 0.2, 0.3); tone(784, 1.93, 0.16, 0.3); tone(659, 2.1, 0.3, 0.3);
