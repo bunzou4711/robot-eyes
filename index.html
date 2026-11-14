@@ -573,7 +573,7 @@
     <script>
       (function () {
         /* ---------- 版と自動更新（新しい版が出たら自動で読み直す） ---------- */
-        var PAGE_VERSION = '20261114-11';
+        var PAGE_VERSION = '20261114-12';
         try {
           fetch(location.pathname + '?vcb=' + Date.now(), { cache: 'no-store' })
             .then(function (res) { return res.text(); })
@@ -978,7 +978,7 @@
           try {
             var u = new SpeechSynthesisUtterance(text);
             u.lang = 'ja-JP';
-            u.rate = 1.0;
+            u.rate = 0.9;
             u.pitch = 1.15;
             var voices = speechSynthesis.getVoices();
             for (var i = 0; i < voices.length; i++) {
@@ -1448,8 +1448,11 @@
             var late = nowMin - tMin;
             if (!remindFired[key] && late >= 0 && late <= 15) {
               remindFired[key] = true;
-              speakReminder(r.text);
-              setTimeout(function () { speakReminder(r.text); }, 4500);
+              for (var ri = 0; ri < 4; ri++) {
+                (function (delay) {
+                  setTimeout(function () { speakReminder(r.text); }, delay);
+                })(ri * 5000);
+              }
               tempExpr('happy', 3000);
               setVoiceStatus('声かけ：' + r.text);
             }
