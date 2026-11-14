@@ -183,6 +183,9 @@
         left: 50%;
         bottom: max(14px, env(safe-area-inset-bottom));
         transform: translateX(-50%) translateY(8px);
+        max-height: calc(100vh - 28px);
+        max-height: calc(100dvh - 28px);
+        overflow-y: auto;
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
@@ -217,9 +220,9 @@
       }
       .controls button:active { background: rgba(255, 255, 255, .18); }
       .controls button[aria-pressed="true"] {
-        background: #ff9a2e;
-        border-color: #ff9a2e;
-        color: #1a1206;
+        background: #ff3b30;
+        border-color: #ff3b30;
+        color: #fff;
         font-weight: 700;
       }
 
