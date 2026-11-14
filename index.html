@@ -271,6 +271,21 @@
         cursor: pointer;
         min-height: 2.75rem;
       }
+      .calc-display .calc-close {
+        margin-top: 10px;
+        margin-left: 8px;
+        appearance: none;
+        border: 1px solid rgba(255, 154, 46, .85);
+        background: rgba(255, 154, 46, .3);
+        color: #fff;
+        font: inherit;
+        font-size: 1rem;
+        font-weight: 700;
+        padding: 8px 20px;
+        border-radius: 999px;
+        cursor: pointer;
+        min-height: 2.75rem;
+      }
 
       .calc-display .calc-detail {
         font-size: 1.05rem;
@@ -489,6 +504,7 @@
       <div class="calc-btns" id="calcItemBtns"><span class="calc-btns-label">商品（タップで足す）</span></div>
       <div class="calc-btns" id="calcRecvBtns"><span class="calc-btns-label">お預かり（タップでセット）</span></div>
       <button type="button" class="calc-reset" id="btnCalcReset">次のお客さん（クリア）</button>
+      <button type="button" class="calc-close" id="btnCalcClose">✕ 閉じる</button>
     </div>
 
     <div class="mini-panel" id="memoPanel" hidden>
@@ -1169,6 +1185,7 @@
           showControls();
         });
         btnCalcReset.addEventListener('click', function () { resetCalc(); });
+        document.getElementById('btnCalcClose').addEventListener('click', function () { if (calcOn) btnCalc.click(); });
 
         /* ---------- 追加機能：内訳／ボタン計算／呼び込み／メモ／声かけ／掲示板 ---------- */
         var elCalcDetail = document.getElementById('calcDetail');
